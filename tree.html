@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Recursive Canvas Tree</title>
+		<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js" ></script>
+		<script type="text/javascript">
+			var aCutPos = [];
+			
+			var chopTri = function(ctx, x1, y1, x2, y2){
+				
+				ctx.beginPath(); // Filled triangle
+				ctx.moveTo(x1,y1);
+				ctx.lineTo(x2,y2);
+				ctx.lineTo(x2,0);
+				ctx.lineTo(x1,0);				
+				ctx.clip();
+				
+			};
+			
+			var copyToClipBoard = function(src_ctx, dest_ctx, x, y, w, h){				
+				//var imgData = src_ctx.getImageData(x, y, w, h);
+				dest_ctx.save();
+				var canvas0 = document.getElementById('mycanvas0');				
+				chopTri(dest_ctx, x, y, x+w, y+h);
+				dest_ctx.drawImage(canvas0, 0, 0);
+				dest_ctx.restore();
+				aCutPos = [];
+				
+			};		
+				
+				
+			
+			var getWidth = function() {				
+				var w = aCutPos[1].p1 - aCutPos[0].p1;
+				//console.log('width ' + w);
+				return w;
+			};
+			
+			var getHeight = function() {
+				var h = aCutPos[1].p2 - aCutPos[0].p2;
+				//console.log('height ' + h);
+				return h;		
+			};
+			
+			var getCurPos = function (e) {
+				var x;
+				var y;
+				if (e.pageX || e.pageY) {
+				  x = e.pageX;
+				  y = e.pageY;
+				} else {
+				  x = e.clientX + document.body.scrollLeft +
+				       document.documentElement.scrollLeft;
+				  y = e.clientY + document.body.scrollTop +
+				       document.documentElement.scrollTop;
+				}
+				
+				vPos = {p1:x, p2:y}
+				aCutPos.push(vPos);
+			}
+			
+    
+			var drawTree = function (ctx, startX, startY, length, angle, depth, branchWidth) {
+				var rand = Math.random, newLength, newAngle, newDepth, maxBranch = 3,
+				endX, endY, maxAngle = 2 * Math.PI / 4, subBranches, lenShrink;
+				
+				ctx.beginPath();
+				ctx.moveTo(startX, startY);
+				endX = startX + length * Math.cos(angle);
+				endY = startY + length * Math.sin(angle);
+				ctx.lineCap = 'round';
+				ctx.lineWidth = branchWidth;
+				ctx.lineTo(endX, endY);
+				
+				if (depth <= 2) {
+					ctx.strokeStyle = 'rgb(0,' + (((rand() * 64) + 128) >> 0) + ',0)';					
+				} else {
+					ctx.strokeStyle = 'rgb(' + (((rand() * 64) + 64) >> 0) + ',50,25)';
+				}
+				ctx.stroke();
+				
+				newDepth = depth - 1;
+				
+				if (!newDepth) {
+					return;
+				}
+				
+				subBranches = (rand() * (maxBranch - 1)) + 1;
+				branchWidth *= 0.7;
+				
+				for(var i = 0; i < subBranches; i++) {
+					newAngle = angle + rand() * maxAngle - maxAngle * 0.5;
+					newLength = length * (0.7 + rand() * 0.3);
+					drawTree(ctx, endX, endY, newLength, newAngle, newDepth, branchWidth);
+				}
+			}
+			
+			$(document).ready(function() {
+				var canvas0 = document.getElementById('mycanvas0');
+				var canvas1 = document.getElementById('mycanvas1');
+				
+				
+				
+				var ctx0 = canvas0.getContext('2d');
+				var ctx1 = canvas1.getContext('2d');
+				
+				canvas0.addEventListener('mousedown', getCurPos, false);
+				canvas0.addEventListener('mouseup', getCurPos, false);
+				
+				canvas1.addEventListener('click', function(){copyToClipBoard(ctx0, ctx1, aCutPos[0].p1,  aCutPos[0].p2, getWidth(), getHeight())}, false)
+				
+				drawTree(ctx0, 320, 470, 60, -Math.PI/2, 12, 12);			
+				
+				
+
+			});
+		</script>
+	</head>
+	<body>
+	<div>
+		<canvas id='mycanvas0' width='640' height='480' > </canvas>
+		<canvas id='mycanvas1' width='640' height='480' border="1" ></canvas>
+	</div>
+	</div>
+	
+	</body>
+</html>
